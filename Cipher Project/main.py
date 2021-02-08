@@ -1,11 +1,13 @@
 import argparse as ap
 import keySchedule as ks
+import block as b
 import whitening as w
+import constant as c
 
 # set commmand line arguments with flags
 # read argv
 # read in 64 bits at a time? read in entire file and process 64 bits at a time?
-
+# 0xabcdef0123456789abcd
 key = ''
 # key schedule is global
 # keySched = ks.KeySchedule()
@@ -22,14 +24,22 @@ def generateKeys(keySched):
     # generate  for all 20 rounds
     keySched.getKeySchedule()
 
+
 def main():
     txtFile, key = parseArgs()
     keySched = ks.KeySchedule(int(key, 16))
     generateKeys(keySched)
-    print(keySched.keySchedule)
-    with open(txtFile) as f:
-        text = f.read()
-        print(text)
+    # print(keySched.keySchedule)
+    with open(txtFile, 'rb') as f:
+        block = b.Block(f.readline(8))
+        plain = block.plainBytes
+        while block != b'':
+            # plain = block.plainBytes
+            block.pad()
+            print(block.plainBytes)      
+            # w.whitening(text, key)
+            block = f.readline(8)
+        f.close()
     # print(keySched.keySchedule)
 
 
