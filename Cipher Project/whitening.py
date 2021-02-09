@@ -9,7 +9,6 @@ import block
 
 # key = '0xabcdef0123456789abcd'
 
-
 # block (bytes) as an integer
 def getWords(block, key=False):
     words = [0,0,0,0]
@@ -19,7 +18,7 @@ def getWords(block, key=False):
         blockInt = int(block.hex(), 16)
     remainder = blockInt
     for i in range(4):
-        print(hex(remainder))
+        # print(hex(remainder))
         word = remainder % (16 ** 4)
         # insert into array starting from low order bits
         words[3-i] = word
@@ -28,22 +27,25 @@ def getWords(block, key=False):
     return words
 
 # xor each 4 words with the high 64 bits of the key
+# key is passed in as an int
 def whitening(block, key):
     rVals = []
-   
     # split into 4 words
     words = getWords(block)
     # split high 64 bits of key into 4 words
-    whiteningKey = int(key, 16) // (16 ** 4)
+    whiteningKey = key // (16 ** 4)
     keyWords = getWords(whiteningKey, key=True)
-    print(words, keyWords)
+    print("block words: {}, key words: {}".format(words, keyWords))
 
     for word in range(len(words)):
         rVals.append(words[word] ^ keyWords[word])
 
     # final xor'd values for 4 16-bit blocks
+    print("r values:")
     for r in rVals:
         print(hex(r))
+
+    return rVals
 
 
 # def main():

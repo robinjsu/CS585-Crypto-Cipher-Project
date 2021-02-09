@@ -2,7 +2,7 @@ import constant
 
 class KeySchedule:
 
-    keySchedule = []
+    keys = []
     masterKey = None
 
     def __init__(self, key):
@@ -50,12 +50,12 @@ class KeySchedule:
         return roundKeys, newKey
 
     # generate all subkeys for all 20 rounds
-    def getKeySchedule(self):
+    def keyGen(self):
         roundKey = self.masterKey
         for round in range(constant.ROUNDS):
             roundKeys, roundKey = self.getRoundKeys(round, roundKey)
             # print(roundKeys)
-            self.keySchedule.append(roundKeys)
-        # for round in self.keySchedule:
+            self.keys.append(roundKeys)
+        # for round in self.keys:
             # print(round)
-        return self.keySchedule
+        return self.keys
