@@ -1,4 +1,4 @@
-import constant
+import constant as c
 
 class KeySchedule:
 
@@ -11,10 +11,10 @@ class KeySchedule:
     # returns 80-bit key as integer 
     def keyShift(self, key):
         # left shift and subtract largest factor of 2
-        if (key >= pow(2, (constant.BITS - 1))):
+        if (key >= pow(2, (c.BITS - 1))):
             
             key = (key << 1) + 1
-            key -= pow(2, constant.BITS)
+            key -= pow(2, c.BITS)
         else:
             key = key << 1
         # print(hex(key))
@@ -41,7 +41,7 @@ class KeySchedule:
     def getRoundKeys(self, roundNum, key):
         roundKeys = []
         newKey = key
-        for k in range(constant.NUM_SUBKEYS):
+        for k in range(c.NUM_SUBKEYS):
             newKey = self.keyShift(newKey)
             # convert int to hex string to get keys
             subkey = self.calcSubKey(roundNum, k, hex(newKey)[2::])
@@ -52,10 +52,15 @@ class KeySchedule:
     # generate all subkeys for all 20 rounds
     def keyGen(self):
         roundKey = self.masterKey
-        for round in range(constant.ROUNDS):
+        for round in range(c.ROUNDS):
             roundKeys, roundKey = self.getRoundKeys(round, roundKey)
             # print(roundKeys)
             self.keys.append(roundKeys)
         # for round in self.keys:
             # print(round)
+        # convert round keys from string to int
+        for r in range(c.ROUNDS):
+            for k in range(c.NUM_SUBKEYS):
+                self.keys[r][k] = (int(self.keys[r][k], 16))  
+        # print(self.keys, type(self.keys))           
         return self.keys

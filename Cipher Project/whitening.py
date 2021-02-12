@@ -47,6 +47,9 @@ def whitening(block, key):
 
     return rVals
 
+# takes two keys as ints and concats their hex representation
+def concatKeys(key1, key2):
+    return (key1 * 0x100) + key2
 
 # def main():
 #     whitening('security', key)

@@ -19,8 +19,11 @@ def parseArgs():
     return args.file, args.key 
 
 def main():
+    # parse command line arguments
     txtFile, key = parseArgs()
+    # instantiate key object
     keySched = ks.KeySchedule(int(key, 16))
+    # generate key schedule
     keySched.keyGen()
     # print(keySched.keySchedule)
     with open(txtFile, 'rb') as f:
@@ -29,7 +32,7 @@ def main():
         print("plaintext block: ", plain)
         # while block != b'':
             # plain = block.plainBytes
-        block.psu_crypt()
+        block.encrypt()
         # block = b.Block(f.readline(8), keySched.masterKey)
         f.close()
     # print(keySched.keySchedule)
