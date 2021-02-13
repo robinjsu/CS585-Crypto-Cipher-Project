@@ -15,26 +15,64 @@ def parseArgs():
     parser = ap.ArgumentParser()
     parser.add_argument("-f", "--file", type=str)
     parser.add_argument("-k", "--key", type=str)
+    parser.add_argument("-d", "--decrypt", action='store_true')
     args = parser.parse_args()
-    return args.file, args.key 
+    return args.file, args.key, args.decrypt
+
+def encryptText(txtFile, keySched):
+    cipherTextBlocks = []
+    # read in textfile as bytes
+    with open(txtFile, 'rb') as f:
+        block = b.Block(f.readline(c.BLOCK_SIZE_BYTES), keySched)
+        # plain = block.plainBytes
+        # print("plaintext block: ", plain)
+        while block.plainBytes != b'00000000':
+            block.encrypt()
+            cipherTextBlocks.append("{}\n".format(block.outputBytes))
+            print(block.inputBytes)
+            # plain = block.plainBytes
+            block = b.Block(f.readline(c.BLOCK_SIZE_BYTES), keySched)
+        if block.lastBlockPadded is False:
+            print(block.inputBytes)
+            block.encrypt() 
+            cipherTextBlocks.append("{}\n".format(block.outputBytes))
+        f.close()
+    return cipherTextBlocks
+
+def decryptText(txtFile, keySched):
+    plainTextBlocks = []
+    with open(txtFile, 'r') as f:
+        block = b.Block(f.readline(18), keySched, decrypt=True)
+        # strip newline character
+        block.plainBytes = block.plainBytes[:-1:] 
+        print(type(block.plainBytes))
+        while block.plainBytes != "":
+            block.decrypt()
+            block = b.Block(f.readline(18), keySched, decrypt=True)
+        f.close()    
+
 
 def main():
     # parse command line arguments
-    txtFile, key = parseArgs()
+    txtFile, key, decrypt = parseArgs()
     # instantiate key object
     keySched = ks.KeySchedule(int(key, 16))
     # generate key schedule
     keySched.keyGen()
-    # print(keySched.keySchedule)
-    with open(txtFile, 'rb') as f:
-        block = b.Block(f.readline(8), keySched)
-        plain = block.plainBytes
-        print("plaintext block: ", plain)
-        # while block != b'':
-            # plain = block.plainBytes
-        block.encrypt()
-        # block = b.Block(f.readline(8), keySched.masterKey)
-        f.close()
+    if decrypt == False:
+        cipherTextBlocks = encryptText(txtFile, keySched)
+        encryptedFile = txtFile[:-4:] + "-encrypted.txt"
+        with open(encryptedFile, 'w') as f:
+            f.writelines(cipherTextBlocks)
+            f.close()
+    else:
+        keySched.reverseKeySchedule()
+        plainTextBlocks = decryptText(txtFile, keySched)
+
+
+   
+    #if file exists, write to new file#
+    
     # print(keySched.keySchedule)
 
 

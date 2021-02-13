@@ -10,11 +10,11 @@ import block
 # key = '0xabcdef0123456789abcd'
 
 # block (bytes) as an integer
-def getWords(block, key=False):
+def getWords(block, hex=False):
     words = [0,0,0,0]
     blockInt = block
     # convert bytes => int representation
-    if key == False:
+    if hex == False:
         blockInt = int(block.hex(), 16)
     remainder = blockInt
     for i in range(4):
@@ -28,13 +28,17 @@ def getWords(block, key=False):
 
 # xor each 4 words with the high 64 bits of the key
 # key is passed in as an int
-def whitening(block, key):
+def whitening(block, key, decrypt=False):
     rVals = []
-    # split into 4 words
-    words = getWords(block)
+
     # split high 64 bits of key into 4 words
+    if decrypt == False:
+        # split into 4 words
+        words = getWords(block)
+    else:
+        words = getWords(block, hex=True)
     whiteningKey = key // (16 ** 4)
-    keyWords = getWords(whiteningKey, key=True)
+    keyWords = getWords(whiteningKey, hex=True)
     print("block words: {}, key words: {}".format(words, keyWords))
 
     for word in range(len(words)):
@@ -50,6 +54,14 @@ def whitening(block, key):
 # takes two keys as ints and concats their hex representation
 def concatKeys(key1, key2):
     return (key1 * 0x100) + key2
+
+def concatHexWords(cipherBlocks):
+    cipher = 0
+    for word in range(4):
+        cipher = (cipher * 0x10000) + cipherBlocks[word]
+    print(hex(cipher))
+    return cipher
+    # print("IMPLEMENT ME")    
 
 # def main():
 #     whitening('security', key)
