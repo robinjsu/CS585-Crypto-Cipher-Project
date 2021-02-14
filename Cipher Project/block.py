@@ -11,7 +11,7 @@ class Block:
     _rVals = []
     _rValsNew = []
     lastBlockPadded = False
-    # _cipherVals = []
+    plainText = ""
     
 
     def __init__(self, plainBytes, keyObj, decrypt=False):
@@ -61,9 +61,9 @@ class Block:
         #     print(hex(k))
         
         g1 = word // (16 ** 2)
-        print("g1: ", hex(g1))
+        # print("g1: ", hex(g1))
         g2 = word % (16 ** 2)
-        print("g2: ", hex(g2))
+        # print("g2: ", hex(g2))
         gVals = [g1, g2]
         for g in range(4):
             # print("round key: ", hex(round_keys[key_index]))
@@ -72,7 +72,7 @@ class Block:
             gVals.append(gVal)
             key_index += 1
         output = util.concatKeys(gVals[4], gVals[5])
-        print("gPermutation output: ", hex(output))
+        # print("gPermutation output: ", hex(output))
         return output    
 
     def swap(self, F0, F1):
@@ -113,27 +113,35 @@ class Block:
         # for i in self._cipherVals:
         #     print("cipherVals: ", hex(i)) 
         # concatenate 4 cipher words to get final cipherblock
-        self.outputBytes = hex(util.concatHexWords(self._cipherVals))
+        self.outputBytes = hex(util.concatHexWords(self._cipherVals))[2::]
         print(self.outputBytes)
 
-        
+    
     def decrypt(self):
         print("input: {}".format(self.inputBytes))
         self._rVals = util.whitening(int(self.inputBytes, 16), self.keySchedule.masterKey, integer=True)
         # for r in self._rVals:
         #     print(hex(r))
-        for round in range(1):
+        for round in range(c.ROUNDS):
             print("****ROUND: {}******".format(round))
             F0, F1 = self.fFunction(round)
             self.swap(F0, F1)
             self._rVals = self._rValsNew
             self._rValsNew = []
             print("NEW R VALUES: {}".format(self._rVals))
+
         self.finalSwap()
+
         decryptBytes = util.concatHexWords(self._rVals)  
         plainVals = util.whitening(decryptBytes, self.keySchedule.masterKey, integer=True)
-        self.outputBytes = hex(util.concatHexWords(self._rVals))
-        print(self.outputBytes)
+        self.outputBytes = hex(util.concatHexWords(plainVals))
+        self.bytesToASCII(self.outputBytes)
+        # print("final output: ", self.plainText)
+
+    def bytesToASCII(self, hexStr):
+        plainBytes = bytes.fromhex(hexStr[2::])
+        self.plainText = plainBytes.decode('utf-8')
+         
 
     def pad(self):
         if len(self.inputBytes) < c.BLOCK_SIZE_BYTES:

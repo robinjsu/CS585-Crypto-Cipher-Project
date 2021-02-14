@@ -41,17 +41,19 @@ def encryptText(txtFile, keySched):
     return cipherTextBlocks
 
 def decryptText(txtFile, keySched):
-    plainTextBlocks = []
+    plainText = ""
     with open(txtFile, 'r') as f:
         block = b.Block(f.readline(18), keySched, decrypt=True)
         # strip newline character
-        block.inputBytes = block.inputBytes[2::] 
+        block.inputBytes = block.inputBytes
         print(type(block.inputBytes))
         while block.inputBytes != "":
             block.decrypt()
+            plainText += "{}".format(block.plainText)
             block = b.Block(f.readline(18), keySched, decrypt=True)
-            block.inputBytes = block.inputBytes[2::]
+            block.inputBytes = block.inputBytes    
         f.close()    
+    return plainText
 
 
 def main():
@@ -69,16 +71,13 @@ def main():
             f.close()
     else:
         keySched.reverseKeySchedule()
-        plainTextBlocks = decryptText(txtFile, keySched)
-
-
-   
-    #if file exists, write to new file#
-    
-    # print(keySched.keySchedule)
-
-
-    
+        plainText = decryptText(txtFile, keySched)
+        print(plainText)
+        decryptedFile = txtFile[:-4:] + "-decrypted.txt"
+        with open(decryptedFile, 'w') as f:
+            f.writelines(plainText)
+            f.close()
+        print("{} decrypted, plaintext written to {}.".format(txtFile, decryptedFile))
 
 if __name__ == "__main__":
     main()
