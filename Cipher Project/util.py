@@ -28,11 +28,11 @@ def getWords(block, hex=False):
 
 # xor each 4 words with the high 64 bits of the key
 # key is passed in as an int
-def whitening(block, key, decrypt=False):
+def whitening(block, key, integer=False):
     rVals = []
 
     # split high 64 bits of key into 4 words
-    if decrypt == False:
+    if integer == False:
         # split into 4 words
         words = getWords(block)
     else:
@@ -43,7 +43,7 @@ def whitening(block, key, decrypt=False):
 
     for word in range(len(words)):
         rVals.append(words[word] ^ keyWords[word])
-
+    
     # final xor'd values for 4 16-bit blocks
     print("r values:")
     for r in rVals:

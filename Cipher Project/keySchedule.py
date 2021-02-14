@@ -4,6 +4,7 @@ class KeySchedule:
 
     keys = []
     masterKey = None
+    subKey = None
 
     def __init__(self, key):
         self.masterKey = key
@@ -28,7 +29,7 @@ class KeySchedule:
         # this will re-append them to the front of the hex string
         while len(keyStr) < 20:
             keyStr = str(0) + keyStr
-        # print(keyStr)
+        # print("key str: ", keyStr)
         for i in range(10):
             keysK.append(keyStr[i*2] + keyStr[(i*2)+1])
         # print(keysK)
@@ -54,15 +55,18 @@ class KeySchedule:
         roundKey = self.masterKey
         for round in range(c.ROUNDS):
             roundKeys, roundKey = self.getRoundKeys(round, roundKey)
-            # print(roundKeys)
+            # print("round key: {}, round: {} ".format(hex(roundKey), round))
             self.keys.append(roundKeys)
-        # for round in self.keys:
-            # print(round)
+        # save last subkey value to use for decryption
+        self.subKey = roundKey
         # convert round keys from string to int
         for r in range(c.ROUNDS):
             for k in range(c.NUM_SUBKEYS):
                 self.keys[r][k] = (int(self.keys[r][k], 16))  
-        # print(self.keys, type(self.keys))           
+        # print(self.keys, type(self.keys))     
+        # for r in range(c.ROUNDS):
+        #     for k in range(c.NUM_SUBKEYS): 
+        #         print(hex(self.keys[r][k]))     
         return self.keys
 
     def reverseKeySchedule(self):
@@ -72,4 +76,5 @@ class KeySchedule:
             for k in range(c.NUM_SUBKEYS):
                 subkeys.append(self.keys[(c.ROUNDS-1)-r][k])
             newKeySchedule.append(subkeys)
+        
         self.keys = newKeySchedule        

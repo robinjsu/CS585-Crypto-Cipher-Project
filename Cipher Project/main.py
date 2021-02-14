@@ -24,13 +24,14 @@ def encryptText(txtFile, keySched):
     # read in textfile as bytes
     with open(txtFile, 'rb') as f:
         block = b.Block(f.readline(c.BLOCK_SIZE_BYTES), keySched)
-        # plain = block.plainBytes
+        # plain = block.inputBytes
         # print("plaintext block: ", plain)
-        while block.plainBytes != b'00000000':
+        while block.inputBytes != b'00000000':
+            print(block.inputBytes)
             block.encrypt()
             cipherTextBlocks.append("{}\n".format(block.outputBytes))
             print(block.inputBytes)
-            # plain = block.plainBytes
+            # plain = block.inputBytes
             block = b.Block(f.readline(c.BLOCK_SIZE_BYTES), keySched)
         if block.lastBlockPadded is False:
             print(block.inputBytes)
@@ -44,11 +45,12 @@ def decryptText(txtFile, keySched):
     with open(txtFile, 'r') as f:
         block = b.Block(f.readline(18), keySched, decrypt=True)
         # strip newline character
-        block.plainBytes = block.plainBytes[:-1:] 
-        print(type(block.plainBytes))
-        while block.plainBytes != "":
+        block.inputBytes = block.inputBytes[2::] 
+        print(type(block.inputBytes))
+        while block.inputBytes != "":
             block.decrypt()
             block = b.Block(f.readline(18), keySched, decrypt=True)
+            block.inputBytes = block.inputBytes[2::]
         f.close()    
 
 

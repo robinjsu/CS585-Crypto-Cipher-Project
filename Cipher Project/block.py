@@ -15,15 +15,10 @@ class Block:
     
 
     def __init__(self, plainBytes, keyObj, decrypt=False):
-        self.plainBytes = plainBytes
+        self.inputBytes = plainBytes
         if decrypt == False:
             self.pad()
         self.keySchedule = keyObj
-
-    def generateKeys(self):
-        # generate  for all 20 rounds
-        self.keySchedule.keyGen()
-
 
     def fFunction(self, round):
         T0 = self.gPermutation(self._rVals[0], round, 0)
@@ -61,9 +56,9 @@ class Block:
         else:
             key_index = 4
             
-        print("round keys")
-        for k in round_keys:
-            print(hex(k))
+        # print("round keys")
+        # for k in round_keys:
+        #     print(hex(k))
         
         g1 = word // (16 ** 2)
         print("g1: ", hex(g1))
@@ -77,7 +72,7 @@ class Block:
             gVals.append(gVal)
             key_index += 1
         output = util.concatKeys(gVals[4], gVals[5])
-        print("gPermutation output: ", output)
+        print("gPermutation output: ", hex(output))
         return output    
 
     def swap(self, F0, F1):
@@ -92,8 +87,16 @@ class Block:
 
         print(hex(newR0), hex(newR1), hex(newR2), hex(newR3))      
     
+    def finalSwap(self):
+        y0 = self._rVals[2]
+        y1 = self._rVals[3]
+        y2 = self._rVals[0]
+        y3 = self._rVals[1]
+        self._rVals = [y0, y1, y2, y3]
+
+
     def encrypt(self):
-        self._rVals = util.whitening(int(self.inputBytes, 16), self.keySchedule.masterKey)
+        self._rVals = util.whitening(self.inputBytes, self.keySchedule.masterKey)
         #rVals are R0 R1 R2 R3
         for round in range(20):
             print("****ROUND: {}******".format(round))
@@ -102,17 +105,23 @@ class Block:
             self._rVals = self._rValsNew
             self._rValsNew = []
             print("NEW R VALUES: {}".format(self._rVals))
-        self.outputBytes = hex(util.concatCipherWords(self._rVals))
+        
+        self.finalSwap()
+        encryptBytes = util.concatHexWords(self._rVals)
+        # last whitening step
+        self._cipherVals = util.whitening(encryptBytes, self.keySchedule.masterKey, integer=True)
+        # for i in self._cipherVals:
+        #     print("cipherVals: ", hex(i)) 
+        # concatenate 4 cipher words to get final cipherblock
+        self.outputBytes = hex(util.concatHexWords(self._cipherVals))
         print(self.outputBytes)
 
         
-        # last whitening step
-        #self._cipherVals = w.whitening(self.interBytes, self.key)
-        # concatenate 4 cipher words to get final cipherblock
-        
     def decrypt(self):
-        self._rVals = util.whitening(int(self.inputBytes, 16), self.keySchedule.masterKey, decrypt=True)
-        print(self._rVals)
+        print("input: {}".format(self.inputBytes))
+        self._rVals = util.whitening(int(self.inputBytes, 16), self.keySchedule.masterKey, integer=True)
+        # for r in self._rVals:
+        #     print(hex(r))
         for round in range(1):
             print("****ROUND: {}******".format(round))
             F0, F1 = self.fFunction(round)
@@ -120,6 +129,9 @@ class Block:
             self._rVals = self._rValsNew
             self._rValsNew = []
             print("NEW R VALUES: {}".format(self._rVals))
+        self.finalSwap()
+        decryptBytes = util.concatHexWords(self._rVals)  
+        plainVals = util.whitening(decryptBytes, self.keySchedule.masterKey, integer=True)
         self.outputBytes = hex(util.concatHexWords(self._rVals))
         print(self.outputBytes)
 
@@ -127,5 +139,5 @@ class Block:
         if len(self.inputBytes) < c.BLOCK_SIZE_BYTES:
             self.lastBlockPadded = True
             for i in range(8-len(self.inputBytes)):
-                self.plainBytes += b'0'
-        self.plainBytes
+                self.inputBytes += b'0'
+        # self.plainBytes
