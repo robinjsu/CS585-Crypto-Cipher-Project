@@ -15,9 +15,10 @@ class Block:
     
 
     def __init__(self, plainBytes, keyObj, decrypt=False):
+        print("plainBytes: ", plainBytes)
         self.inputBytes = plainBytes
-        if decrypt == False:
-            self.pad()
+        # if decrypt == False:
+        #     self.pad()
         self.keySchedule = keyObj
 
     def fFunction(self, round):
@@ -76,13 +77,7 @@ class Block:
         newR1 = F1 ^ self._rVals[3]
         newR2 = self._rVals[0]
         newR3 = self._rVals[1]
-        # self._rValsNew.append(newR0)
-        # self._rValsNew.append(newR1)
-        # self._rValsNew.append(newR2)
-        # self._rValsNew.append(newR3)
         self._rValsNew = [newR0, newR1, newR2, newR3]
-
-        # print(hex(newR0), hex(newR1), hex(newR2), hex(newR3))      
     
     def finalSwap(self):
         y0 = self._rVals[2]
@@ -110,6 +105,8 @@ class Block:
         self._cipherVals = util.whitening(encryptBytes, self.keySchedule.masterKey, integer=True)
         # concatenate 4 cipher words to get final cipherblock
         self.outputBytes = hex(util.concatHexWords(self._cipherVals))[2::]
+        if len(self.outputBytes) < c.BLOCK_HEX_BYTES:
+            self.outputBytes = '0' + self.outputBytes
         print("output bytes: ", self.outputBytes)
 
     
@@ -119,12 +116,12 @@ class Block:
         # for r in self._rVals:
         #     print(hex(r))
         for round in range(c.ROUNDS):
-            print("****ROUND: {}******".format(round))
+            # print("****ROUND: {}******".format(round))
             F0, F1 = self.fFunction(round)
             self.swap(F0, F1)
             self._rVals = self._rValsNew
             self._rValsNew = []
-            print("NEW R VALUES: {}".format(self._rVals))
+            # print("NEW R VALUES: {}".format(self._rVals))
 
         self.finalSwap()
 
@@ -135,13 +132,9 @@ class Block:
         # print("final output: ", self.plainText)
 
     def bytesToASCII(self, hexStr):
-        plainBytes = bytes.fromhex(hexStr[2::])
-        self.plainText = plainBytes.decode('utf-8')
-         
-
-    def pad(self):
-        if len(self.inputBytes) < c.BLOCK_SIZE_BYTES:
-            self.lastBlockPadded = True
-            for i in range(8-len(self.inputBytes)):
-                self.inputBytes += b'0'
-        # self.plainBytes
+        plain = hexStr[2::]
+        if len(plain) < c.BLOCK_HEX_BYTES:
+            plain = "0" + plain
+        plainBytes = bytes.fromhex(plain)
+        self.plainText = plainBytes.decode()
+        

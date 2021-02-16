@@ -43,8 +43,8 @@ def whitening(block, key, integer=False):
     
     # final xor'd values for 4 16-bit blocks
     # print("r values:")
-    # for r in rVals:
-    #     print(hex(r))
+    for r in rVals:
+        print(hex(r))
 
     return rVals
 
@@ -58,7 +58,6 @@ def concatHexWords(cipherBlocks):
         cipher = (cipher * 0x10000) + cipherBlocks[word]
     print(hex(cipher))
     return cipher
-    # print("IMPLEMENT ME")    
 
 # def main():
 #     whitening('security', key)

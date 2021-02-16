@@ -54,8 +54,6 @@ def encryptText(txtFile, keySched):
     # read in textfile as bytes
     for bl in blocks:
         block = b.Block(bl, keySched)
-    # while block.inputBytes != b'00000000':
-        # print(block.inputBytes)
         block.encrypt()
         cipherTextBlocks.append("{}\n".format(block.outputBytes))
         # block = b.Block(f.readline(c.BLOCK_SIZE_BYTES), keySched)
@@ -69,15 +67,17 @@ def encryptText(txtFile, keySched):
 def decryptText(txtFile, keySched):
     plainText = ""
     with open(txtFile, 'r') as f:
-        block = b.Block(f.readline(18), keySched, decrypt=True)
+        inputBytes = f.readline()
+        block = b.Block(inputBytes[:-1], keySched, decrypt=True)
         # strip newline character
-        block.inputBytes = block.inputBytes
+        # block.inputBytes = block.inputBytes[:-1]
         print(type(block.inputBytes))
         while block.inputBytes != "":
             block.decrypt()
             plainText += "{}".format(block.plainText)
-            block = b.Block(f.readline(18), keySched, decrypt=True)
-            block.inputBytes = block.inputBytes    
+            inputBytes = f.readline()
+            block = b.Block(inputBytes[:-1], keySched, decrypt=True)
+            # block.inputBytes = block.inputBytes[:-1]    
         f.close()    
     return plainText
 

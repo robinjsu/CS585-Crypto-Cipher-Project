@@ -18,9 +18,6 @@ class KeySchedule:
             key -= pow(2, c.BITS)
         else:
             key = key << 1
-        # print(hex(key))
-        # print(bin(key))
-        # print string with only the hex digits
         return key
 
     def calcSubKey(self, roundNum, counter, keyStr):
