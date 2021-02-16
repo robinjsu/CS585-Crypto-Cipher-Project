@@ -7,8 +7,6 @@ import block
 # output R0 R1 R2 R3
 # xoring with which 64 bits of the key? The high 64 bits
 
-# key = '0xabcdef0123456789abcd'
-
 # block (bytes) as an integer
 def getWords(block, hex=False):
     words = [0,0,0,0]
@@ -23,7 +21,6 @@ def getWords(block, hex=False):
         # insert into array starting from low order bits
         words[3-i] = word
         remainder //= (16 ** 4)
-    # print(words)
     return words
 
 # xor each 4 words with the high 64 bits of the key
@@ -39,15 +36,15 @@ def whitening(block, key, integer=False):
         words = getWords(block, hex=True)
     whiteningKey = key // (16 ** 4)
     keyWords = getWords(whiteningKey, hex=True)
-    print("block words: {}, key words: {}".format(words, keyWords))
+    # print("block words: {}, key words: {}".format(words, keyWords))
 
     for word in range(len(words)):
         rVals.append(words[word] ^ keyWords[word])
     
     # final xor'd values for 4 16-bit blocks
-    print("r values:")
-    for r in rVals:
-        print(hex(r))
+    # print("r values:")
+    # for r in rVals:
+    #     print(hex(r))
 
     return rVals
 

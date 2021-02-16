@@ -19,25 +19,51 @@ def parseArgs():
     args = parser.parse_args()
     return args.file, args.key, args.decrypt
 
+def readFile(file):
+    plainText = b''
+    with open(file, 'rb') as f:
+        block = f.read(c.BLOCK_SIZE_BYTES)
+        while block != b'':
+            plainText += block
+            block = f.read(c.BLOCK_SIZE_BYTES)
+    padding = c.BLOCK_SIZE_BYTES - (len(plainText) % c.BLOCK_SIZE_BYTES)
+    if padding > 0:
+        pad = b'0' * padding
+        plainText += pad
+    elif padding == 0:
+        pad = b'0' * c.BLOCK_SIZE_BYTES
+        plainText += pad
+    print(plainText)
+    return plainText
+
+def splitBlocks(plainText):
+    blocks = []
+    numBlocks = len(plainText) // 8
+    for i in range(numBlocks):
+        start = i * 8
+        stop = (i * 8) + 8
+        blocks.append(plainText[start:stop])
+    return blocks
+
+    
+
 def encryptText(txtFile, keySched):
     cipherTextBlocks = []
+    plainText = readFile(txtFile)
+    blocks = splitBlocks(plainText)
     # read in textfile as bytes
-    with open(txtFile, 'rb') as f:
-        block = b.Block(f.readline(c.BLOCK_SIZE_BYTES), keySched)
-        # plain = block.inputBytes
-        # print("plaintext block: ", plain)
-        while block.inputBytes != b'00000000':
-            print(block.inputBytes)
-            block.encrypt()
-            cipherTextBlocks.append("{}\n".format(block.outputBytes))
-            print(block.inputBytes)
-            # plain = block.inputBytes
-            block = b.Block(f.readline(c.BLOCK_SIZE_BYTES), keySched)
-        if block.lastBlockPadded is False:
-            print(block.inputBytes)
-            block.encrypt() 
-            cipherTextBlocks.append("{}\n".format(block.outputBytes))
-        f.close()
+    for bl in blocks:
+        block = b.Block(bl, keySched)
+    # while block.inputBytes != b'00000000':
+        # print(block.inputBytes)
+        block.encrypt()
+        cipherTextBlocks.append("{}\n".format(block.outputBytes))
+        # block = b.Block(f.readline(c.BLOCK_SIZE_BYTES), keySched)
+    # if block.lastBlockPadded is False:
+    #     print(block.inputBytes)
+    #     block.encrypt() 
+    #     cipherTextBlocks.append("{}\n".format(block.outputBytes))
+    # f.close()
     return cipherTextBlocks
 
 def decryptText(txtFile, keySched):
@@ -59,12 +85,16 @@ def decryptText(txtFile, keySched):
 def main():
     # parse command line arguments
     txtFile, key, decrypt = parseArgs()
+    with open(key, 'r') as f:
+        key = f.readline()
+        f.close()
     # instantiate key object
     keySched = ks.KeySchedule(int(key, 16))
     # generate key schedule
     keySched.keyGen()
     if decrypt == False:
         cipherTextBlocks = encryptText(txtFile, keySched)
+        print(cipherTextBlocks)
         encryptedFile = txtFile[:-4:] + "-encrypted.txt"
         with open(encryptedFile, 'w') as f:
             f.writelines(cipherTextBlocks)
@@ -81,3 +111,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+    # plain = readFile('testfile.txt')
+    # blocks = splitBlocks(plain)
+    # print(blocks)
