@@ -1,12 +1,6 @@
 import constant
 import block 
 
-# divide up plaintext into 4 words
-# divide up key into 4 words
-# xor the 4 pieces together bitwise
-# output R0 R1 R2 R3
-# xoring with which 64 bits of the key? The high 64 bits
-
 # block (bytes) as an integer
 def getWords(block, hex=False):
     words = [0,0,0,0]
@@ -36,15 +30,13 @@ def whitening(block, key, integer=False):
         words = getWords(block, hex=True)
     whiteningKey = key // (16 ** 4)
     keyWords = getWords(whiteningKey, hex=True)
-    # print("block words: {}, key words: {}".format(words, keyWords))
 
     for word in range(len(words)):
         rVals.append(words[word] ^ keyWords[word])
     
     # final xor'd values for 4 16-bit blocks
-    # print("r values:")
-    for r in rVals:
-        print(hex(r))
+    # for r in rVals:
+    #     print(hex(r))
 
     return rVals
 
@@ -58,9 +50,3 @@ def concatHexWords(cipherBlocks):
         cipher = (cipher * 0x10000) + cipherBlocks[word]
     print(hex(cipher))
     return cipher
-
-# def main():
-#     whitening('security', key)
-
-# if __name__ == "__main__":
-#     main()

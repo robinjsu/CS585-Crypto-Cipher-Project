@@ -17,41 +17,29 @@ class Block:
     def __init__(self, plainBytes, keyObj, decrypt=False):
         print("plainBytes: ", plainBytes)
         self.inputBytes = plainBytes
-        # if decrypt == False:
-        #     self.pad()
         self.keySchedule = keyObj
 
     def fFunction(self, round):
         T0 = self.gPermutation(self._rVals[0], round, 0)
-        # print("T0: ", hex(T0))
         T1 = self.gPermutation(self._rVals[1], round, 4)
-        # print("T1: ", hex(T1))
         round_keys = self.keySchedule.keys[round]
-        # F0 = (T0 + 2T1 + concat(k8, k9)) % BLOCK_SIZE_BITS
         F0 = (T0 + (2 * T1) + util.concatKeys(round_keys[8], round_keys[9])) % (2**16)
-        # F1 = (2T0 + T1 + concat(k10, k11)) % BLOCK_SIZE_BITS
         F1 = ((2 * T0) + T1 + util.concatKeys(round_keys[10], round_keys[11])) % (2**16)
-        # print(hex(F0), hex(F1))
         return F0, F1
 
     # return int
     # g3 = Ftable(g2 ^ K(Round * 4 + x)) ^ g1
     def gFunc(self, g1, g2, roundKey):
         ft1 = g2 ^ roundKey
-        # print(hex(ft1))
         ftable_output1 = c.F_TABLE[ft1 // (2**4)][ft1 % (2 ** 4)]
-        # print(hex(ftable_output1))
         g3 = ftable_output1 ^ g1
-        # print("g3: ", g3)
         return g3
         
     # return hex string of concat(g5, g6)
     def gPermutation(self, word, round, TVal):
         round_keys = self.keySchedule.keys[round]
         gVals = []
-        # # convert round keys to hex from string
-        # for k in range(c.NUM_SUBKEYS):
-        #     round_keys.append(int(self.keySchedule.keys[round][k], 16))
+
         if TVal == 0:
             key_index = 0
         else:
@@ -88,7 +76,6 @@ class Block:
 
 
     def encrypt(self):
-        print("input bytes: ", self.inputBytes)
         self._rVals = util.whitening(self.inputBytes, self.keySchedule.masterKey)
         #rVals are R0 R1 R2 R3
         for round in range(20):
@@ -105,23 +92,18 @@ class Block:
         self._cipherVals = util.whitening(encryptBytes, self.keySchedule.masterKey, integer=True)
         # concatenate 4 cipher words to get final cipherblock
         self.outputBytes = hex(util.concatHexWords(self._cipherVals))[2::]
-        if len(self.outputBytes) < c.BLOCK_HEX_BYTES:
+        if len(self.outputBytes) < c.BLOCK_HEX_CHARS:
             self.outputBytes = '0' + self.outputBytes
-        print("output bytes: ", self.outputBytes)
-
     
     def decrypt(self):
-        print("input: {}".format(self.inputBytes))
+        # print("input: {}".format(self.inputBytes))
         self._rVals = util.whitening(int(self.inputBytes, 16), self.keySchedule.masterKey, integer=True)
-        # for r in self._rVals:
-        #     print(hex(r))
         for round in range(c.ROUNDS):
             # print("****ROUND: {}******".format(round))
             F0, F1 = self.fFunction(round)
             self.swap(F0, F1)
             self._rVals = self._rValsNew
             self._rValsNew = []
-            # print("NEW R VALUES: {}".format(self._rVals))
 
         self.finalSwap()
 
@@ -133,7 +115,7 @@ class Block:
 
     def bytesToASCII(self, hexStr):
         plain = hexStr[2::]
-        if len(plain) < c.BLOCK_HEX_BYTES:
+        if len(plain) < c.BLOCK_HEX_CHARS:
             plain = "0" + plain
         plainBytes = bytes.fromhex(plain)
         self.plainText = plainBytes.decode()

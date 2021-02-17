@@ -12,8 +12,7 @@ class KeySchedule:
     # returns 80-bit key as integer 
     def keyShift(self, key):
         # left shift and subtract largest factor of 2
-        if (key >= pow(2, (c.BITS - 1))):
-            
+        if (key >= pow(2, (c.BITS - 1))):        
             key = (key << 1) + 1
             key -= pow(2, c.BITS)
         else:
@@ -59,11 +58,7 @@ class KeySchedule:
         # convert round keys from string to int
         for r in range(c.ROUNDS):
             for k in range(c.NUM_SUBKEYS):
-                self.keys[r][k] = (int(self.keys[r][k], 16))  
-        # print(self.keys, type(self.keys))     
-        # for r in range(c.ROUNDS):
-        #     for k in range(c.NUM_SUBKEYS): 
-        #         print(hex(self.keys[r][k]))     
+                self.keys[r][k] = (int(self.keys[r][k], 16))   
         return self.keys
 
     def reverseKeySchedule(self):
