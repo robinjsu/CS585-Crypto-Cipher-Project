@@ -4,18 +4,15 @@ import keySchedule as ks
 
 class Block:
     key = ''
-    #key schedule object
+    #key object
     keySchedule = None
     inputBytes = b''
     outputBytes = ""
     _rVals = []
     _rValsNew = []
     lastBlockPadded = False
-    plainText = ""
     
-
     def __init__(self, plainBytes, keyObj, decrypt=False):
-        # print("plainBytes: ", plainBytes)
         self.inputBytes = plainBytes
         self.keySchedule = keyObj
 
@@ -27,7 +24,6 @@ class Block:
         F1 = ((2 * T0) + T1 + util.concatKeys(round_keys[10], round_keys[11])) % (2**16)
         return F0, F1
 
-    # return int
     # g3 = Ftable(g2 ^ K(Round * 4 + x)) ^ g1
     def gFunc(self, g1, g2, roundKey):
         ft1 = g2 ^ roundKey
@@ -39,34 +35,30 @@ class Block:
     def gPermutation(self, word, round, TVal):
         round_keys = self.keySchedule.keys[round]
         gVals = []
-
         if TVal == 0:
             key_index = 0
         else:
-            key_index = 4
-            
+            key_index = 4     
         g1 = word // (16 ** 2)
-        # print("g1: ", hex(g1))
         g2 = word % (16 ** 2)
-        # print("g2: ", hex(g2))
         gVals = [g1, g2]
+
         for g in range(4):
-            # print("round key: ", hex(round_keys[key_index]))
             gVal = self.gFunc(gVals[g], gVals[g+1], round_keys[key_index])
-            # print("g" + str(g+3) + ": " + hex(gVal))
             gVals.append(gVal)
             key_index += 1
         output = util.concatKeys(gVals[4], gVals[5])
-        # print("gPermutation output: ", hex(output))
         return output    
 
+    # xor and swap before next round
     def swap(self, F0, F1):
         newR0 = F0 ^ self._rVals[2]
         newR1 = F1 ^ self._rVals[3]
         newR2 = self._rVals[0]
         newR3 = self._rVals[1]
         self._rValsNew = [newR0, newR1, newR2, newR3]
-    
+
+   # final swap before whitening 
     def finalSwap(self):
         y0 = self._rVals[2]
         y1 = self._rVals[3]
@@ -74,41 +66,32 @@ class Block:
         y3 = self._rVals[1]
         self._rVals = [y0, y1, y2, y3]
 
-
+    # encrypt block with key over 20 rounds
     def encrypt(self):
-        self._rVals = util.whitening(self.inputBytes, self.keySchedule.masterKey)
-        #rVals are R0 R1 R2 R3
+        self._rVals = util.whitening(int(self.inputBytes.hex(), 16), self.keySchedule.masterKey)
         for round in range(c.ROUNDS):
-            # print("****ROUND: {}******".format(round))
             F0, F1 = self.fFunction(round)
             self.swap(F0, F1)
             self._rVals = self._rValsNew
             self._rValsNew = []
-            # print("NEW R VALUES: {}".format(self._rVals))
-        
         self.finalSwap()
         encryptBytes = util.concatHexWords(self._rVals)
-        # last whitening step
-        self._cipherVals = util.whitening(encryptBytes, self.keySchedule.masterKey, integer=True)
+        self._cipherVals = util.whitening(encryptBytes, self.keySchedule.masterKey)
         # concatenate 4 cipher words to get final cipherblock
         self.outputBytes = hex(util.concatHexWords(self._cipherVals))[2::]
         while len(self.outputBytes) < c.BLOCK_HEX_CHARS:
             self.outputBytes = '0' + self.outputBytes
     
     def decrypt(self):
-        # print("input: {}".format(self.inputBytes))
-        self._rVals = util.whitening(int(self.inputBytes, 16), self.keySchedule.masterKey, integer=True)
+        self._rVals = util.whitening(int(self.inputBytes, 16), self.keySchedule.masterKey)
         for round in range(c.ROUNDS):
-            # print("****ROUND: {}******".format(round))
             F0, F1 = self.fFunction((c.ROUNDS-1) - round)
             self.swap(F0, F1)
             self._rVals = self._rValsNew
             self._rValsNew = []
-
         self.finalSwap()
-
         decryptBytes = util.concatHexWords(self._rVals)  
-        plainVals = util.whitening(decryptBytes, self.keySchedule.masterKey, integer=True)
+        plainVals = util.whitening(decryptBytes, self.keySchedule.masterKey)
         self.outputBytes = hex(util.concatHexWords(plainVals))[2::]
         while len(self.outputBytes) < c.BLOCK_HEX_CHARS:
             self.outputBytes = '0' + self.outputBytes

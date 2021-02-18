@@ -1,16 +1,10 @@
-import constant
 import block 
 
 # block (bytes) as an integer
-def getWords(block, hex=False):
+def getWords(block):
     words = [0,0,0,0]
-    blockInt = block
-    # convert bytes => int representation
-    if hex == False:
-        blockInt = int(block.hex(), 16)
-    remainder = blockInt
+    remainder = block
     for i in range(4):
-        # print(hex(remainder))
         word = remainder % (16 ** 4)
         # insert into array starting from low order bits
         words[3-i] = word
@@ -18,19 +12,11 @@ def getWords(block, hex=False):
     return words
 
 # xor each 4 words with the high 64 bits of the key
-# key is passed in as an int
-def whitening(block, key, integer=False):
+def whitening(block, key):
     rVals = []
-
-    # split high 64 bits of key into 4 words
-    if integer == False:
-        # split into 4 words
-        words = getWords(block)
-    else:
-        words = getWords(block, hex=True)
+    words = getWords(block)
     whiteningKey = key // (16 ** 4)
-    keyWords = getWords(whiteningKey, hex=True)
-
+    keyWords = getWords(whiteningKey)
     for word in range(len(words)):
         rVals.append(words[word] ^ keyWords[word])
 

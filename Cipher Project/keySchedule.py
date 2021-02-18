@@ -4,14 +4,12 @@ class KeySchedule:
 
     keys = []
     masterKey = None
-    subKey = None
 
     def __init__(self, key):
         self.masterKey = key
 
     # returns 80-bit key as integer 
     def keyShift(self, key):
-        # left shift and subtract largest factor of 2
         if (key >= pow(2, (c.BITS - 1))):        
             key = (key << 1) + 1
             key -= pow(2, c.BITS)
@@ -25,13 +23,10 @@ class KeySchedule:
         # this will re-append them to the front of the hex string
         while len(keyStr) < 20:
             keyStr = str(0) + keyStr
-        # print("key str: ", keyStr)
         for i in range(10):
             keysK.append(keyStr[i*2] + keyStr[(i*2)+1])
-        # print(keysK)
         indx = ((roundNum * 4) + (counter % 4)) % 10
         indx = 9 - indx
-        # print(keysK[indx])
         return keysK[indx] 
 
     # generate 12 subkeys for single round of cipher
@@ -51,11 +46,7 @@ class KeySchedule:
         roundKey = self.masterKey
         for round in range(c.ROUNDS):
             roundKeys, roundKey = self.getRoundKeys(round, roundKey)
-            # print("round key: {}, round: {} ".format(hex(roundKey), round))
             self.keys.append(roundKeys)
-        # save last subkey value to use for decryption
-        self.subKey = roundKey
-        # convert round keys from string to int
         for r in range(c.ROUNDS):
             for k in range(c.NUM_SUBKEYS):
                 self.keys[r][k] = (int(self.keys[r][k], 16))   

@@ -3,8 +3,6 @@ import keySchedule as ks
 import block as b
 import constant as c
 
-key = ''
-padded = False
 
 def parseArgs():
     parser = ap.ArgumentParser()
@@ -19,18 +17,18 @@ def readFile(file):
     with open(file, 'rb') as f:
         block = f.read(c.BLOCK_SIZE_BYTES)
         while block != b'':
-            # print("block: ", block)
             plainText += block
             block = f.read(c.BLOCK_SIZE_BYTES)
-    print("len plaintext: ", len(plainText))
+    return plainText       
+
+def pad(plainText):
     padding = len(plainText) % c.BLOCK_SIZE_BYTES
     if padding != 0 :
         pad = b'\x00' * (c.BLOCK_SIZE_BYTES - padding)
         plainText += pad
-    # elif padding == 0:
-    #     pad = b'\x00' * c.BLOCK_SIZE_BYTES
-    #     plainText += pad
-    # print(plainText)
+    elif padding == 0:
+        pad = b'\x00' * c.BLOCK_SIZE_BYTES
+        plainText += pad
     return plainText
 
 def splitBlocks(plainText):
@@ -40,7 +38,6 @@ def splitBlocks(plainText):
         start = i * 8
         stop = (i * 8) + 8
         blocks.append(plainText[start:stop])
-    # print(blocks)
     return blocks
 
 def bytesToASCII(hexStr):
@@ -50,7 +47,7 @@ def bytesToASCII(hexStr):
 
 def encryptText(txtFile, keySched):
     cipherTextBlocks = []
-    plainText = readFile(txtFile)
+    plainText = pad(readFile(txtFile))
     blocks = splitBlocks(plainText)
     for bl in blocks:
         block = b.Block(bl, keySched)
@@ -75,12 +72,10 @@ def decryptText(txtFile, keySched):
 
 
 def main():
-    # parse command line arguments
     txtFile, key, decrypt = parseArgs()
     with open(key, 'r') as f:
         key = f.readline()
         f.close()
-    # instantiate key object
     keySched = ks.KeySchedule(int(key, 16))
     # generate key schedule
     keySched.keyGen()
@@ -88,7 +83,6 @@ def main():
     if decrypt == False:
         print("encrypting...")
         cipherTextBlocks = encryptText(txtFile, keySched)
-        # print(cipherTextBlocks)
         encryptedFile = "ciphertext.txt"
         with open(encryptedFile, 'w') as f:
             f.writelines(cipherTextBlocks)
@@ -96,15 +90,12 @@ def main():
     # decrypt        
     else:
         print("decrypting...")
-        # keySched.reverseKeySchedule()
         plainText = decryptText(txtFile, keySched)
-        # print(plainText)
         decryptedFile = txtFile[:-4:] + "-decrypted.txt"
         with open(decryptedFile, 'w') as f:
             f.writelines(plainText)
             f.close()
-        print("\n...\n{} decrypted. plaintext written to {}.".format(txtFile, decryptedFile))
+        print("...\n{} decrypted. plaintext written to {}.\n".format(txtFile, decryptedFile))
 
 if __name__ == "__main__":
     main()
-    # readFile('plaintext.txt')
