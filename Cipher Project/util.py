@@ -32,3 +32,36 @@ def concatHexWords(cipherBlocks):
         cipher = (cipher * 0x10000) + cipherBlocks[word]
     # print(hex(cipher))
     return cipher
+
+def splitBlocks(plainText):
+    blocks = []
+    numBlocks = len(plainText) // 8
+    for i in range(numBlocks):
+        start = i * 8
+        stop = (i * 8) + 8
+        blocks.append(plainText[start:stop])
+    return blocks
+
+def pad(plainText):
+    padding = len(plainText) % c.BLOCK_SIZE_BYTES
+    if padding != 0 :
+        pad = b'\x00' * (c.BLOCK_SIZE_BYTES - padding)
+        plainText += pad
+    elif padding == 0:
+        pad = b'\x00' * c.BLOCK_SIZE_BYTES
+        plainText += pad
+    return plainText
+
+def bytesToASCII(hexStr):
+        plainBytes = bytes.fromhex(hexStr)
+        plainText = plainBytes.decode()
+        return plainText
+
+def readFile(file):
+    plainText = b''
+    with open(file, 'rb') as f:
+        block = f.read(c.BLOCK_SIZE_BYTES)
+        while block != b'':
+            plainText += block
+            block = f.read(c.BLOCK_SIZE_BYTES)
+    return plainText 

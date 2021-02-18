@@ -2,6 +2,7 @@ import argparse as ap
 import keySchedule as ks
 import block as b
 import constant as c
+import util
 
 
 def parseArgs():
@@ -11,44 +12,11 @@ def parseArgs():
     parser.add_argument("-d", "--decrypt", action='store_true', help="(optional) flag to indicate decryption mode")
     args = parser.parse_args()
     return args.file, args.key, args.decrypt
-
-def readFile(file):
-    plainText = b''
-    with open(file, 'rb') as f:
-        block = f.read(c.BLOCK_SIZE_BYTES)
-        while block != b'':
-            plainText += block
-            block = f.read(c.BLOCK_SIZE_BYTES)
-    return plainText       
-
-def pad(plainText):
-    padding = len(plainText) % c.BLOCK_SIZE_BYTES
-    if padding != 0 :
-        pad = b'\x00' * (c.BLOCK_SIZE_BYTES - padding)
-        plainText += pad
-    elif padding == 0:
-        pad = b'\x00' * c.BLOCK_SIZE_BYTES
-        plainText += pad
-    return plainText
-
-def splitBlocks(plainText):
-    blocks = []
-    numBlocks = len(plainText) // 8
-    for i in range(numBlocks):
-        start = i * 8
-        stop = (i * 8) + 8
-        blocks.append(plainText[start:stop])
-    return blocks
-
-def bytesToASCII(hexStr):
-        plainBytes = bytes.fromhex(hexStr)
-        plainText = plainBytes.decode()
-        return plainText
-
+    
 def encryptText(txtFile, keySched):
     cipherTextBlocks = []
-    plainText = pad(readFile(txtFile))
-    blocks = splitBlocks(plainText)
+    plainText = util.pad(util.readFile(txtFile))
+    blocks = util.splitBlocks(plainText)
     for bl in blocks:
         block = b.Block(bl, keySched)
         block.encrypt()
@@ -67,7 +35,7 @@ def decryptText(txtFile, keySched):
             block = None
             block = b.Block(inputBytes[:-1], keySched, decrypt=True)
         f.close()
-    plainText = bytesToASCII(hexString)
+    plainText = util.bytesToASCII(hexString)
     return plainText
 
 
