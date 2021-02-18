@@ -33,10 +33,6 @@ def whitening(block, key, integer=False):
 
     for word in range(len(words)):
         rVals.append(words[word] ^ keyWords[word])
-    
-    # final xor'd values for 4 16-bit blocks
-    # for r in rVals:
-    #     print(hex(r))
 
     return rVals
 
@@ -48,5 +44,5 @@ def concatHexWords(cipherBlocks):
     cipher = 0
     for word in range(4):
         cipher = (cipher * 0x10000) + cipherBlocks[word]
-    print(hex(cipher))
+    # print(hex(cipher))
     return cipher

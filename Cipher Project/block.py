@@ -15,7 +15,7 @@ class Block:
     
 
     def __init__(self, plainBytes, keyObj, decrypt=False):
-        print("plainBytes: ", plainBytes)
+        # print("plainBytes: ", plainBytes)
         self.inputBytes = plainBytes
         self.keySchedule = keyObj
 
@@ -78,7 +78,7 @@ class Block:
     def encrypt(self):
         self._rVals = util.whitening(self.inputBytes, self.keySchedule.masterKey)
         #rVals are R0 R1 R2 R3
-        for round in range(20):
+        for round in range(c.ROUNDS):
             # print("****ROUND: {}******".format(round))
             F0, F1 = self.fFunction(round)
             self.swap(F0, F1)
@@ -92,7 +92,7 @@ class Block:
         self._cipherVals = util.whitening(encryptBytes, self.keySchedule.masterKey, integer=True)
         # concatenate 4 cipher words to get final cipherblock
         self.outputBytes = hex(util.concatHexWords(self._cipherVals))[2::]
-        if len(self.outputBytes) < c.BLOCK_HEX_CHARS:
+        while len(self.outputBytes) < c.BLOCK_HEX_CHARS:
             self.outputBytes = '0' + self.outputBytes
     
     def decrypt(self):
@@ -100,7 +100,7 @@ class Block:
         self._rVals = util.whitening(int(self.inputBytes, 16), self.keySchedule.masterKey, integer=True)
         for round in range(c.ROUNDS):
             # print("****ROUND: {}******".format(round))
-            F0, F1 = self.fFunction(round)
+            F0, F1 = self.fFunction((c.ROUNDS-1) - round)
             self.swap(F0, F1)
             self._rVals = self._rValsNew
             self._rValsNew = []
@@ -109,14 +109,9 @@ class Block:
 
         decryptBytes = util.concatHexWords(self._rVals)  
         plainVals = util.whitening(decryptBytes, self.keySchedule.masterKey, integer=True)
-        self.outputBytes = hex(util.concatHexWords(plainVals))
-        self.bytesToASCII(self.outputBytes)
-        # print("final output: ", self.plainText)
+        self.outputBytes = hex(util.concatHexWords(plainVals))[2::]
+        while len(self.outputBytes) < c.BLOCK_HEX_CHARS:
+            self.outputBytes = '0' + self.outputBytes
 
-    def bytesToASCII(self, hexStr):
-        plain = hexStr[2::]
-        if len(plain) < c.BLOCK_HEX_CHARS:
-            plain = "0" + plain
-        plainBytes = bytes.fromhex(plain)
-        self.plainText = plainBytes.decode()
+
         

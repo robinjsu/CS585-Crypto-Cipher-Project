@@ -59,14 +59,4 @@ class KeySchedule:
         for r in range(c.ROUNDS):
             for k in range(c.NUM_SUBKEYS):
                 self.keys[r][k] = (int(self.keys[r][k], 16))   
-        return self.keys
-
-    def reverseKeySchedule(self):
-        newKeySchedule = []
-        for r in range(c.ROUNDS):
-            subkeys = []
-            for k in range(c.NUM_SUBKEYS):
-                subkeys.append(self.keys[(c.ROUNDS-1)-r][k])
-            newKeySchedule.append(subkeys)
-        
-        self.keys = newKeySchedule        
+        return self.keys       
