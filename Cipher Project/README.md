@@ -16,6 +16,16 @@ of ciphertext blocks, each written on a new line, no '0x' appended.
 
 <br/>
 
+### Files Included
+- psu-crypt.py: main program file
+- block.py: block class, contains methods for block cipher algorithm
+- keySchedule.py: key object class, stores and generates subkeys
+- util.py: utility file to help with file input/output, whitening, and other functions
+- plaintext.txt: plaintext file input
+- key.txt: key file input
+- ciphertext.txt: resulting ciphertext from `plaintext.txt`
+- README.md: this file
+
 ### To Run:
 
 #### Encryption Mode:
